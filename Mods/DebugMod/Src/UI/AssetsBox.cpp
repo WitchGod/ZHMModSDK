@@ -31,6 +31,42 @@ void DebugMod::DrawAssetsBox(bool p_HasFocus)
         static int s_Button = 1;
         static char s_NpcName[100] {};
 
+        ImGui::Text("Convenience Props");
+        ImGui::Text("");
+
+        if (ImGui::Button("Spawn Convenience Props in Inventory"))
+        {
+            std::vector<ZRepositoryID> m_ConvenientProps {
+                ZRepositoryID("4404fc8d-ffc0-472d-a63a-6480be973e74"), // Crowbar
+                ZRepositoryID("92d9acf6-fd79-4818-bda6-c4c28b123d8c"), // Screwdriver
+                ZRepositoryID("494e74b2-f3c0-4c77-be15-8f22a6eed97b"), // Wrench
+                ZRepositoryID("d3387f28-866d-4262-88cb-6e5b1076bac0"), // Lockpick
+                ZRepositoryID("351c144c-8687-426a-a6f0-c4abd7021062"), // Sieker
+                ZRepositoryID("808ebdcb-aafe-496a-9541-5903bf03c12e"), // Kalmer
+            };
+            for (auto& m_Prop : m_ConvenientProps)
+                SpawnRepositoryProp(m_Prop, false);
+
+            std::vector<ZRepositoryID> m_ConvenientProps20 {
+                    ZRepositoryID("93f34bf9-2bd4-4aff-85c7-7e4a9921dfe7"), // EMP Explosive
+                    ZRepositoryID("c2beb035-74af-488e-bfb5-a7f7fb8e0bcc"), // Lethal Poison
+                    ZRepositoryID("882fe39c-4395-4c29-87a3-a378fada5c67"), // Lethal Syringe
+                    ZRepositoryID("a10cf0cb-266d-498b-ac29-49ab10c4e575"), // Emetic Poison
+                    ZRepositoryID("15295f15-b72d-49ce-9c36-fbb45c68c72a"), // Emetic Syringe
+                    ZRepositoryID("765b2c7d-8554-463a-9ee4-de7b20822161"), // Remote Taser
+                    ZRepositoryID("0bc37bb7-dcd8-4348-a338-22fd8676a416"), // Remote Duck
+                    ZRepositoryID("293af6cc-dd8d-4641-b650-14cdfd00f1de"), // Breaching Charge
+                    ZRepositoryID("dda002e9-02b1-4208-82a5-cf059f3c79cf"), // Coin
+                    ZRepositoryID("8b114fce-586b-4b06-b446-75d0bb4a4cfb"), // Keycard Hacker
+            };
+            for (auto& m_Prop : m_ConvenientProps20)
+            {
+                for (int i = 0; i < 20; ++i)
+                    SpawnRepositoryProp(m_Prop, false);
+            }
+        }
+        ImGui::Separator();
+
         ImGui::Text("Repository Props");
         ImGui::Text("");
         ImGui::Text("Prop Title");

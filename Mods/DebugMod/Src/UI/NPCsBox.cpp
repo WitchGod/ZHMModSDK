@@ -283,6 +283,50 @@ void DebugMod::DrawNPCsBox(bool p_HasFocus)
             }
         }
 
+        ImGui::Separator();
+
+        ImGui::Text("HitmanPosX");
+        ImGui::SameLine();
+        ImGui::Text("%f", m_Hm5Position.Trans.x);
+
+        ImGui::Text("HitmanPosY");
+        ImGui::SameLine();
+        ImGui::Text("%f", m_Hm5Position.Trans.y);
+
+        ImGui::Text("HitmanPosZ");
+        ImGui::SameLine();
+        ImGui::Text("%f", m_Hm5Position.Trans.z);
+        
+
+        if (ImGui::Button("Mark Current Position"))
+        {
+            TEntityRef<ZHitman5> s_LocalHitman;
+            Functions::ZPlayerRegistry_GetLocalPlayer->Call(Globals::PlayerRegistry, &s_LocalHitman);
+
+            if (s_LocalHitman)
+            {
+                ZSpatialEntity* s_HitmanSpatialEntity = s_LocalHitman.m_ref.QueryInterface<ZSpatialEntity>();
+                m_Hm5Position = s_HitmanSpatialEntity->GetWorldMatrix();
+            }
+        }
+        ImGui::SameLine();
+
+        if (ImGui::Button("Teleport NPC To Mark"))
+        {
+            TEntityRef<ZHitman5> s_LocalHitman;
+            Functions::ZPlayerRegistry_GetLocalPlayer->Call(Globals::PlayerRegistry, &s_LocalHitman);
+
+            if (s_LocalHitman)
+            {
+                ZEntityRef s_Ref;
+                s_Actor->GetID(&s_Ref);
+
+                ZSpatialEntity* s_ActorSpatialEntity = s_Ref.QueryInterface<ZSpatialEntity>();
+
+                s_ActorSpatialEntity->SetWorldMatrix(m_Hm5Position);
+            }
+        }
+
         ImGui::EndChild();
         ImGui::EndGroup();
     }
