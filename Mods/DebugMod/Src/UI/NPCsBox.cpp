@@ -283,6 +283,26 @@ void DebugMod::DrawNPCsBox(bool p_HasFocus)
             }
         }
 
+        if (ImGui::Button("Teleport Player To NPC"))
+        {
+            TEntityRef<ZHitman5> s_LocalHitman;
+            Functions::ZPlayerRegistry_GetLocalPlayer->Call(Globals::PlayerRegistry, &s_LocalHitman);
+
+            if (s_LocalHitman)
+            {
+                ZEntityRef s_Ref;
+                s_Actor->GetID(&s_Ref);
+
+                if (s_Actor)
+                {
+                    ZSpatialEntity* s_HitmanSpatialEntity = s_LocalHitman.m_ref.QueryInterface<ZSpatialEntity>();
+                    ZSpatialEntity* s_ActorSpatialEntity = s_Ref.QueryInterface<ZSpatialEntity>();
+
+                    s_HitmanSpatialEntity->SetWorldMatrix(s_ActorSpatialEntity->GetWorldMatrix());
+                }
+            }
+        }
+
         ImGui::Separator();
 
         ImGui::Text("HitmanPosX");
@@ -324,6 +344,39 @@ void DebugMod::DrawNPCsBox(bool p_HasFocus)
                 ZSpatialEntity* s_ActorSpatialEntity = s_Ref.QueryInterface<ZSpatialEntity>();
 
                 s_ActorSpatialEntity->SetWorldMatrix(m_Hm5Position);
+            }
+        }
+
+        if (ImGui::Button("Teleport Player To Mark"))
+        {
+            TEntityRef<ZHitman5> s_LocalHitman;
+            Functions::ZPlayerRegistry_GetLocalPlayer->Call(Globals::PlayerRegistry, &s_LocalHitman);
+
+            if (s_LocalHitman)
+            {
+                ZEntityRef s_Ref;
+                s_Actor->GetID(&s_Ref);
+
+                ZSpatialEntity* s_HitmanSpatialEntity = s_LocalHitman.m_ref.QueryInterface<ZSpatialEntity>();
+
+                s_HitmanSpatialEntity->SetWorldMatrix(m_Hm5Position);
+            }
+        }
+
+        if (ImGui::Button("Teleport NPC To The Void"))
+        {
+            TEntityRef<ZHitman5> s_LocalHitman;
+            Functions::ZPlayerRegistry_GetLocalPlayer->Call(Globals::PlayerRegistry, &s_LocalHitman);
+
+            if (s_LocalHitman)
+            {
+                ZEntityRef s_Ref;
+                s_Actor->GetID(&s_Ref);
+
+                ZSpatialEntity* s_ActorSpatialEntity = s_Ref.QueryInterface<ZSpatialEntity>();
+
+                m_VoidPosition.Trans.z = -1000.0f;
+                s_ActorSpatialEntity->SetWorldMatrix(m_VoidPosition);
             }
         }
 

@@ -120,6 +120,7 @@ private:
 
     ZHM5CrippleBox* m_Hm5CrippleBox = nullptr;
     SMatrix m_Hm5Position;
+    SMatrix m_VoidPosition;
 };
 
 DECLARE_ZHM_PLUGIN(DebugMod)
