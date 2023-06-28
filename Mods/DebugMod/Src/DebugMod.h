@@ -119,8 +119,11 @@ private:
     inline static std::mutex m_Mutex;
 
     ZHM5CrippleBox* m_Hm5CrippleBox = nullptr;
-    SMatrix m_Hm5Position;
+    SMatrix m_MarkPosition;
     SMatrix m_VoidPosition;
+    std::vector<ZActor*> m_MarkTargets;
+    ZEntityRef m_OriginalCam;
+    bool m_CurrentlyPeeking;
 };
 
 DECLARE_ZHM_PLUGIN(DebugMod)

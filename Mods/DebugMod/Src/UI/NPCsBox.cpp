@@ -1,7 +1,11 @@
 #include "DebugMod.h"
 
 #include <Glacier/ZActor.h>
+#include <Glacier/ZApplicationEngineWin32.h>
+#include <Glacier/ZCameraEntity.h>
 #include <Glacier/ZContentKitManager.h>
+#include <Glacier/ZFreeCamera.h>
+#include <Glacier/ZHM5InputManager.h>
 #include <Glacier/ZSpatialEntity.h>
 
 #include "imgui_internal.h"
@@ -282,6 +286,7 @@ void DebugMod::DrawNPCsBox(bool p_HasFocus)
                 s_ActorSpatialEntity->SetWorldMatrix(s_HitmanSpatialEntity->GetWorldMatrix());
             }
         }
+        ImGui::SameLine();
 
         if (ImGui::Button("Teleport Player To NPC"))
         {
@@ -305,19 +310,6 @@ void DebugMod::DrawNPCsBox(bool p_HasFocus)
 
         ImGui::Separator();
 
-        ImGui::Text("HitmanPosX");
-        ImGui::SameLine();
-        ImGui::Text("%f", m_Hm5Position.Trans.x);
-
-        ImGui::Text("HitmanPosY");
-        ImGui::SameLine();
-        ImGui::Text("%f", m_Hm5Position.Trans.y);
-
-        ImGui::Text("HitmanPosZ");
-        ImGui::SameLine();
-        ImGui::Text("%f", m_Hm5Position.Trans.z);
-        
-
         if (ImGui::Button("Mark Current Position"))
         {
             TEntityRef<ZHitman5> s_LocalHitman;
@@ -326,26 +318,10 @@ void DebugMod::DrawNPCsBox(bool p_HasFocus)
             if (s_LocalHitman)
             {
                 ZSpatialEntity* s_HitmanSpatialEntity = s_LocalHitman.m_ref.QueryInterface<ZSpatialEntity>();
-                m_Hm5Position = s_HitmanSpatialEntity->GetWorldMatrix();
+                m_MarkPosition = s_HitmanSpatialEntity->GetWorldMatrix();
             }
         }
         ImGui::SameLine();
-
-        if (ImGui::Button("Teleport NPC To Mark"))
-        {
-            TEntityRef<ZHitman5> s_LocalHitman;
-            Functions::ZPlayerRegistry_GetLocalPlayer->Call(Globals::PlayerRegistry, &s_LocalHitman);
-
-            if (s_LocalHitman)
-            {
-                ZEntityRef s_Ref;
-                s_Actor->GetID(&s_Ref);
-
-                ZSpatialEntity* s_ActorSpatialEntity = s_Ref.QueryInterface<ZSpatialEntity>();
-
-                s_ActorSpatialEntity->SetWorldMatrix(m_Hm5Position);
-            }
-        }
 
         if (ImGui::Button("Teleport Player To Mark"))
         {
@@ -359,26 +335,302 @@ void DebugMod::DrawNPCsBox(bool p_HasFocus)
 
                 ZSpatialEntity* s_HitmanSpatialEntity = s_LocalHitman.m_ref.QueryInterface<ZSpatialEntity>();
 
-                s_HitmanSpatialEntity->SetWorldMatrix(m_Hm5Position);
+                s_HitmanSpatialEntity->SetWorldMatrix(m_MarkPosition);
             }
         }
 
-        if (ImGui::Button("Teleport NPC To The Void"))
+        ImGui::Text("PosX");
+        ImGui::SameLine();
+        ImGui::Text("%f", m_MarkPosition.Trans.x);
+        ImGui::SameLine();
+
+        ImGui::Text("PosY");
+        ImGui::SameLine();
+        ImGui::Text("%f", m_MarkPosition.Trans.y);
+        ImGui::SameLine();
+
+        ImGui::Text("PosZ");
+        ImGui::SameLine();
+        ImGui::Text("%f", m_MarkPosition.Trans.z);
+
+        if (ImGui::Button("Add NPC to Marked Targets"))
+            m_MarkTargets.push_back(s_Actor);
+        ImGui::SameLine();
+
+        if (ImGui::Button("Clear Marked Targets"))
+            m_MarkTargets.clear();
+
+        const float m_ClipSize = static_cast<float>(min(m_MarkTargets.size(), 5) + 1);
+        static ImGuiTableFlags flags =
+            /* ImGuiTableFlags_Resizable | */ ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable // | ImGuiTableFlags_Sortable | ImGuiTableFlags_SortMulti
+            | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV | ImGuiTableFlags_NoBordersInBody | ImGuiTableFlags_SizingStretchProp
+            | ImGuiTableFlags_ScrollY;
+        if (ImGui::BeginTable("EntityTable", 5, flags, ImVec2(0.0f, ImGui::GetTextLineHeightWithSpacing() * m_ClipSize), 0.0f))
         {
-            TEntityRef<ZHitman5> s_LocalHitman;
-            Functions::ZPlayerRegistry_GetLocalPlayer->Call(Globals::PlayerRegistry, &s_LocalHitman);
+            /*ImGui::TableSetupColumn("Commands", ImGuiTableColumnFlags_NoSort | ImGuiTableColumnFlags_WidthStretch, 0.0, 0);
+            ImGui::TableSetupColumn("NPC Name", ImGuiTableColumnFlags_WidthStretch, 0.0f, 1);
+            ImGui::TableSetupColumn("Pos.x", ImGuiTableColumnFlags_WidthStretch, 0.0, 2);
+            ImGui::TableSetupColumn("Pos.y", ImGuiTableColumnFlags_WidthStretch, 0.0, 3);
+            ImGui::TableSetupColumn("Pos.z", ImGuiTableColumnFlags_WidthStretch, 0.0, 4);*/
+			ImGui::TableSetupColumn("Commands", ImGuiTableColumnFlags_NoSort, 0.0, 0);
+			ImGui::TableSetupColumn("NPC Name", 0, 0.0f, 1);
+			ImGui::TableSetupColumn("Pos.x", 0, 0.0, 2);
+			ImGui::TableSetupColumn("Pos.y", 0, 0.0, 3);
+			ImGui::TableSetupColumn("Pos.z", 0, 0.0, 4);
+            ImGui::TableSetupScrollFreeze(0, 1);
+            ImGui::TableHeadersRow();
 
-            if (s_LocalHitman)
-            {
-                ZEntityRef s_Ref;
-                s_Actor->GetID(&s_Ref);
+            ImGuiListClipper clipper;
+            clipper.Begin(static_cast<int>(m_MarkTargets.size()));
+            while (clipper.Step())
+                for (int row_n = clipper.DisplayStart; row_n < clipper.DisplayEnd; row_n++)
+                {
+                    auto m_MarkTarget = m_MarkTargets[row_n];
+					auto m_MarkTargetActorName = m_MarkTarget->m_sActorName.c_str();
+                    //ZEntityRef s_Ref;
+                    //m_MarkTarget->GetID(&s_Ref);
 
-                ZSpatialEntity* s_ActorSpatialEntity = s_Ref.QueryInterface<ZSpatialEntity>();
+                    TEntityRef<ZHitman5> s_LocalHitman;
+                    Functions::ZPlayerRegistry_GetLocalPlayer->Call(Globals::PlayerRegistry, &s_LocalHitman);
 
-                m_VoidPosition.Trans.z = -1000.0f;
-                s_ActorSpatialEntity->SetWorldMatrix(m_VoidPosition);
-            }
+                    ImGui::PushID(m_MarkTargetActorName);
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn();
+
+                    if (ImGui::SmallButton("Summon"))
+                    {
+                        if (s_LocalHitman)
+                        {
+                            ZEntityRef s_Ref;
+                            m_MarkTarget->GetID(&s_Ref);
+
+                            ZSpatialEntity* s_HitmanSpatialEntity = s_LocalHitman.m_ref.QueryInterface<ZSpatialEntity>();
+                            ZSpatialEntity* s_ActorSpatialEntity = s_Ref.QueryInterface<ZSpatialEntity>();
+
+                            s_ActorSpatialEntity->SetWorldMatrix(s_HitmanSpatialEntity->GetWorldMatrix());
+                        }
+                    }
+                    ImGui::SameLine();
+
+                    if (ImGui::SmallButton("Banish"))
+                    {
+                        if (s_LocalHitman)
+                        {
+                            ZEntityRef s_Ref;
+                            m_MarkTarget->GetID(&s_Ref);
+
+                            ZSpatialEntity* s_ActorSpatialEntity = s_Ref.QueryInterface<ZSpatialEntity>();
+
+                            m_VoidPosition.Trans.z = -10000.0f;
+                            s_ActorSpatialEntity->SetWorldMatrix(m_VoidPosition);
+                        }
+                    }
+                    ImGui::SameLine();
+
+                    if (ImGui::SmallButton("Move"))
+                    {
+                        if (s_LocalHitman)
+                        {
+                            ZEntityRef s_Ref;
+                            m_MarkTarget->GetID(&s_Ref);
+
+                            ZSpatialEntity* s_ActorSpatialEntity = s_Ref.QueryInterface<ZSpatialEntity>();
+                            s_ActorSpatialEntity->SetWorldMatrix(m_MarkPosition);
+                        }
+                    }
+                    ImGui::SameLine();
+
+                    if (ImGui::SmallButton("Goto"))
+                    {
+                        if (s_LocalHitman)
+                        {
+                            ZEntityRef s_Ref;
+                            m_MarkTarget->GetID(&s_Ref);
+
+                            if (m_MarkTarget)
+                            {
+                                ZSpatialEntity* s_HitmanSpatialEntity = s_LocalHitman.m_ref.QueryInterface<ZSpatialEntity>();
+                                ZSpatialEntity* s_ActorSpatialEntity = s_Ref.QueryInterface<ZSpatialEntity>();
+
+                                s_HitmanSpatialEntity->SetWorldMatrix(s_ActorSpatialEntity->GetWorldMatrix());
+                            }
+                        }
+                    }
+                    ImGui::SameLine();
+
+                    if (!m_CurrentlyPeeking)
+                    {
+                        if (ImGui::SmallButton("Peek"))
+                        {
+                            if (s_LocalHitman)
+                            {
+                                ZEntityRef s_Ref;
+                                m_MarkTarget->GetID(&s_Ref);
+
+                                if (m_MarkTarget)
+                                {
+                                    Functions::ZEngineAppCommon_CreateFreeCamera->Call(&(*Globals::ApplicationEngineWin32)->m_pEngineAppCommon);
+                                    (*Globals::ApplicationEngineWin32)->m_pEngineAppCommon.m_pFreeCameraControl01.m_pInterfaceRef->SetActive(true);
+
+                                    auto s_Camera = (*Globals::ApplicationEngineWin32)->m_pEngineAppCommon.m_pFreeCamera01;
+                                    TEntityRef<IRenderDestinationEntity> s_RenderDest;
+                                    Functions::ZCameraManager_GetActiveRenderDestinationEntity->Call(Globals::CameraManager, &s_RenderDest);
+
+                                    m_OriginalCam = *s_RenderDest.m_pInterfaceRef->GetSource();
+
+                                    ZSpatialEntity* s_ActorSpatialEntity = s_Ref.QueryInterface<ZSpatialEntity>();
+                                    ZCameraEntity* s_ActorCameraEntity = s_Ref.QueryInterface<ZCameraEntity>();
+
+                                    const auto s_CurrentCamera = Functions::GetCurrentCamera->Call();
+                                    SMatrix s_CameraTrans = s_CurrentCamera->GetWorldMatrix();
+                                    SMatrix s_MarkTargetTrans = s_ActorSpatialEntity->GetWorldMatrix();
+
+                                    // We'll hack it by changing the XYZ in the s_MarkTargetTrans to that of s_CameraTrans.
+                                    // The hope is we'll be able to replicate the general bearing of 47 and literally just move
+                                    // the camera to that position.
+                                    s_CameraTrans.Trans.x = s_MarkTargetTrans.mat[3].x;
+                                    s_CameraTrans.Trans.y = s_MarkTargetTrans.mat[3].y;
+                                    s_CameraTrans.Trans.z = s_MarkTargetTrans.mat[3].z + 2.05f;
+
+                                    s_Camera.m_pInterfaceRef->SetWorldMatrix(s_CameraTrans);
+
+                                    Logger::Debug("Camera trans: {}", fmt::ptr(&s_Camera.m_pInterfaceRef->m_mTransform.Trans));
+                                    s_RenderDest.m_pInterfaceRef->SetSource(&s_Camera.m_ref);
+
+                                    auto* s_InputControl = Functions::ZHM5InputManager_GetInputControlForLocalPlayer->Call(Globals::InputManager);
+
+                                    if (s_InputControl)
+                                        s_InputControl->m_bActive = false;
+
+                                    m_CurrentlyPeeking = true;
+                                }
+                            }
+                        }
+                    }
+
+                    if (m_CurrentlyPeeking)
+                    {
+                        if (ImGui::SmallButton("Stop Peeking"))
+                        {
+                            if (s_LocalHitman)
+                            {
+                                TEntityRef<IRenderDestinationEntity> s_RenderDest;
+                                Functions::ZCameraManager_GetActiveRenderDestinationEntity->Call(Globals::CameraManager, &s_RenderDest);
+
+                                s_RenderDest.m_pInterfaceRef->SetSource(&m_OriginalCam);
+
+                                auto* s_InputControl = Functions::ZHM5InputManager_GetInputControlForLocalPlayer->Call(Globals::InputManager);
+
+                                if (s_InputControl)
+                                    s_InputControl->m_bActive = true;
+
+                                m_CurrentlyPeeking = false;
+                            }
+                        }
+                    }
+
+                    ImGui::TableNextColumn();
+
+                    ImGui::Text("%s", m_MarkTargetActorName);
+                    ImGui::TableNextColumn();
+
+					ZEntityRef s_Ref;
+					m_MarkTarget->GetID(&s_Ref);
+
+                    ImGui::Text("%.04f", s_Ref.QueryInterface<ZSpatialEntity>()->GetWorldMatrix().Trans.x);
+                    ImGui::TableNextColumn();
+
+                    ImGui::Text("%.04f", s_Ref.QueryInterface<ZSpatialEntity>()->GetWorldMatrix().Trans.y);
+                    ImGui::TableNextColumn();
+
+                    ImGui::Text("%.04f", s_Ref.QueryInterface<ZSpatialEntity>()->GetWorldMatrix().Trans.z);
+
+                    ImGui::PopID();
+                }
+            ImGui::EndTable();
         }
+
+
+        //for (auto it = m_MarkTargets.begin(); it != m_MarkTargets.end(); ++it)
+        /*for (int i = 0; i < m_MarkTargets.size(); i++)
+        {
+            ZActor* s_MarkedActor = m_MarkTargets.at(i);
+            ImGui::Text(s_MarkedActor->m_sActorName.c_str());
+            ImGui::SameLine();
+
+            if (ImGui::SmallButton("Teleport NPC To Mark"))
+            {
+                TEntityRef<ZHitman5> s_LocalHitman;
+                Functions::ZPlayerRegistry_GetLocalPlayer->Call(Globals::PlayerRegistry, &s_LocalHitman);
+
+                if (s_LocalHitman)
+                {
+                    ZEntityRef s_Ref;
+                    s_MarkedActor->GetID(&s_Ref);
+
+                    ZSpatialEntity* s_ActorSpatialEntity = s_Ref.QueryInterface<ZSpatialEntity>();
+
+                    s_ActorSpatialEntity->SetWorldMatrix(m_MarkPosition);
+                }
+            }
+            ImGui::SameLine();
+
+            if (ImGui::SmallButton("Teleport NPC To The Void"))
+            {
+                TEntityRef<ZHitman5> s_LocalHitman;
+                Functions::ZPlayerRegistry_GetLocalPlayer->Call(Globals::PlayerRegistry, &s_LocalHitman);
+
+                if (s_LocalHitman)
+                {
+                    ZEntityRef s_Ref;
+                    s_MarkedActor->GetID(&s_Ref);
+
+                    ZSpatialEntity* s_ActorSpatialEntity = s_Ref.QueryInterface<ZSpatialEntity>();
+
+                    m_VoidPosition.Trans.z = -1000.0f;
+                    s_ActorSpatialEntity->SetWorldMatrix(m_VoidPosition);
+                }
+            }
+            ImGui::SameLine();
+
+            if (ImGui::SmallButton("Teleport NPC To Player"))
+            {
+                TEntityRef<ZHitman5> s_LocalHitman;
+                Functions::ZPlayerRegistry_GetLocalPlayer->Call(Globals::PlayerRegistry, &s_LocalHitman);
+
+                if (s_LocalHitman)
+                {
+                    ZEntityRef s_Ref;
+                    s_MarkedActor->GetID(&s_Ref);
+
+                    ZSpatialEntity* s_HitmanSpatialEntity = s_LocalHitman.m_ref.QueryInterface<ZSpatialEntity>();
+                    ZSpatialEntity* s_ActorSpatialEntity = s_Ref.QueryInterface<ZSpatialEntity>();
+
+                    s_ActorSpatialEntity->SetWorldMatrix(s_HitmanSpatialEntity->GetWorldMatrix());
+                }
+            }
+            ImGui::SameLine();
+
+            if (ImGui::SmallButton("Teleport Player To NPC"))
+            {
+                TEntityRef<ZHitman5> s_LocalHitman;
+                Functions::ZPlayerRegistry_GetLocalPlayer->Call(Globals::PlayerRegistry, &s_LocalHitman);
+
+                if (s_LocalHitman)
+                {
+                    ZEntityRef s_Ref;
+                    s_MarkedActor->GetID(&s_Ref);
+
+                    if (s_MarkedActor)
+                    {
+                        ZSpatialEntity* s_HitmanSpatialEntity = s_LocalHitman.m_ref.QueryInterface<ZSpatialEntity>();
+                        ZSpatialEntity* s_ActorSpatialEntity = s_Ref.QueryInterface<ZSpatialEntity>();
+
+                        s_HitmanSpatialEntity->SetWorldMatrix(s_ActorSpatialEntity->GetWorldMatrix());
+                    }
+                }
+            }
+        }*/
 
         ImGui::EndChild();
         ImGui::EndGroup();
