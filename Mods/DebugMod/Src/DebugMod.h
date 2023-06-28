@@ -10,6 +10,7 @@
 
 #include <Glacier/ZInput.h>
 #include <Glacier/ZEntity.h>
+#include <Glacier/ZItem.h>
 #include <Glacier/ZResource.h>
 
 #include "ImGuizmo.h"
@@ -119,6 +120,8 @@ private:
     inline static std::mutex m_Mutex;
 
     ZHM5CrippleBox* m_Hm5CrippleBox = nullptr;
+    std::vector<ZHM5Item*> s_KeyItems;
+    std::set<std::string> m_CategoryNameSet;
 };
 
 DECLARE_ZHM_PLUGIN(DebugMod)
