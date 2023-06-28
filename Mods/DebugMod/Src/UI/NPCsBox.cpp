@@ -387,8 +387,8 @@ void DebugMod::DrawNPCsBox(bool p_HasFocus)
                 {
                     auto m_MarkTarget = m_MarkTargets[row_n];
 					auto m_MarkTargetActorName = m_MarkTarget->m_sActorName.c_str();
-                    //ZEntityRef s_Ref;
-                    //m_MarkTarget->GetID(&s_Ref);
+                    ZEntityRef s_Ref;
+                    m_MarkTarget->GetID(&s_Ref);
 
                     TEntityRef<ZHitman5> s_LocalHitman;
                     Functions::ZPlayerRegistry_GetLocalPlayer->Call(Globals::PlayerRegistry, &s_LocalHitman);
@@ -529,13 +529,25 @@ void DebugMod::DrawNPCsBox(bool p_HasFocus)
                         }
                     }
 
+                    if (m_MarkTarget->IsPacified() || m_MarkTarget->IsDead())
+                    {
+                        ImGui::SameLine();
+                        if (ImGui::SmallButton("Revive"))
+                        {
+                            if (s_LocalHitman)
+                            {
+                                ZEntityRef s_Ref;
+                                m_MarkTarget->GetID(&s_Ref);
+
+                                Functions::ZActor_ReviveActor->Call(m_MarkTarget);
+                            }
+                        }
+                    }
+
                     ImGui::TableNextColumn();
 
                     ImGui::Text("%s", m_MarkTargetActorName);
                     ImGui::TableNextColumn();
-
-					ZEntityRef s_Ref;
-					m_MarkTarget->GetID(&s_Ref);
 
                     ImGui::Text("%.04f", s_Ref.QueryInterface<ZSpatialEntity>()->GetWorldMatrix().Trans.x);
                     ImGui::TableNextColumn();
