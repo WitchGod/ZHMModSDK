@@ -40,6 +40,7 @@ set(MODS
 	Clumsy
 	Noclip
 	Hitmen
+	ImprovedDebugMod
 )
 
 foreach(MOD IN LISTS MODS)
