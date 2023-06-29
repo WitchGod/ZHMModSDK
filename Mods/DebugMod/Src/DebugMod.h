@@ -53,6 +53,8 @@ private:
     void SpawnNonRepositoryProp(const char* p_PropAssemblyPath);
     void SpawnNPC(const char* p_NpcName, const ZRepositoryID& repositoryID, const TEntityRef<ZGlobalOutfitKit>* p_GlobalOutfitKit, const char* p_CurrentCharacterSetIndex, const char* p_CurrentcharSetCharacterType, const char* p_CurrentOutfitVariationIndex);
     void LoadRepositoryProps();
+    void TeleportItemToPlayer(const ZHM5Item* s_Item);
+
     static void LoadHashMap();
     static void DownloadHashMap();
     std::string GetEntityName(unsigned long long p_TempBrickHash, unsigned long long p_EntityId, unsigned long long& p_ResourceHash);

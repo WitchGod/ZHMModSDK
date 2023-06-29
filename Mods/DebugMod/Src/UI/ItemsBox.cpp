@@ -83,14 +83,7 @@ void DebugMod::DrawItemsBox(bool p_HasFocus)
 
                         if (s_Value == "key" || s_Value == "QuestItem")
                         {
-                            TEntityRef<ZHitman5> s_LocalHitman;
-                            Functions::ZPlayerRegistry_GetLocalPlayer->Call(Globals::PlayerRegistry, &s_LocalHitman);
-
-                            if (s_LocalHitman)
-                            {
-                                ZSpatialEntity* s_HitmanSpatial = s_LocalHitman.m_ref.QueryInterface<ZSpatialEntity>();
-                                s_Item->m_rGeomentity.m_pInterfaceRef->SetWorldMatrix(s_HitmanSpatial->GetWorldMatrix());
-                            }
+                            TeleportItemToPlayer(s_Item);
                         }
                     }
                 }
@@ -126,14 +119,7 @@ void DebugMod::DrawItemsBox(bool p_HasFocus)
 
         if (ImGui::Button("Teleport Item To Player"))
         {
-            TEntityRef<ZHitman5> s_LocalHitman;
-            Functions::ZPlayerRegistry_GetLocalPlayer->Call(Globals::PlayerRegistry, &s_LocalHitman);
-
-            if (s_LocalHitman)
-            {
-                ZSpatialEntity* s_HitmanSpatial = s_LocalHitman.m_ref.QueryInterface<ZSpatialEntity>();
-                s_Item->m_rGeomentity.m_pInterfaceRef->SetWorldMatrix(s_HitmanSpatial->GetWorldMatrix());
-            }
+            TeleportItemToPlayer(s_Item);
         }
 
         for (size_t i = 0; i < s_Entries->size(); ++i)

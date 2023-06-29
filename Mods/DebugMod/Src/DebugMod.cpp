@@ -615,6 +615,18 @@ void DebugMod::LoadRepositoryProps()
     }
 }
 
+void DebugMod::TeleportItemToPlayer(const ZHM5Item* s_Item)
+{
+    TEntityRef<ZHitman5> s_LocalHitman;
+    Functions::ZPlayerRegistry_GetLocalPlayer->Call(Globals::PlayerRegistry, &s_LocalHitman);
+
+    if (s_LocalHitman)
+    {
+        ZSpatialEntity* s_HitmanSpatial = s_LocalHitman.m_ref.QueryInterface<ZSpatialEntity>();
+        s_Item->m_rGeomentity.m_pInterfaceRef->SetWorldMatrix(s_HitmanSpatial->GetWorldMatrix());
+    }
+}
+
 void DebugMod::LoadHashMap()
 {
     // TODO: Re-do.
