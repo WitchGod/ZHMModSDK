@@ -14,6 +14,7 @@
 
 #include "ImGuizmo.h"
 #include "Glacier/ZScene.h"
+#include <Glacier/ZItem.h>
 
 class ZGlobalOutfitKit;
 class ZHitman5;
@@ -64,9 +65,14 @@ private:
     unsigned long long GetDDSTextureHash(const std::string p_Image);
 
     void TeleportSpatialEntityToMatrix(ZSpatialEntity* p_SpatialEntity, SMatrix p_TargetMatrix);
-    void TeleportSpatialEntityToAnother(ZSpatialEntity* p_SpatialEntityA, ZSpatialEntity* p_SpatialEntityB);
+    void TeleportItemToMatrix(const ZHM5Item* p_Item, SMatrix p_TargetMatrix);
+    void TeleportEntityToMatrix(const ZHM5Item* p_Item, SMatrix p_TargetMatrix);
+    void TeleportEntityToMatrix(ZSpatialEntity* p_SpatialEntity, SMatrix p_TargetMatrix);
+    void TeleportEntityToEntity(ZSpatialEntity* p_SpatialEntityA, ZSpatialEntity* p_SpatialEntityB);
     void TeleportHitmanToActor(ZActor* p_Actor);
     void TeleportActorToHitman(ZActor* p_Actor);
+    void TeleportHitmanToItem(const ZHM5Item* p_Item);
+    void TeleportItemToHitman(const ZHM5Item* p_Item);
     void SwapSpatialEntities(ZSpatialEntity* p_EntityA, ZSpatialEntity* p_EntityB);
     void SwapHitmanAndActor(ZActor* p_Actor);
 

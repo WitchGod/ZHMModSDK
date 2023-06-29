@@ -82,13 +82,21 @@ void ImprovedDebugMod::DrawItemsBox(bool p_HasFocus)
         ImGui::SameLine();
 
         ImGui::BeginGroup();
-        ImGui::BeginChild("item view", ImVec2(0, -ImGui::GetFrameHeightWithSpacing()));
 
         ZHM5Action* s_Action = s_Actions[s_Selected];
         const ZHM5Item* s_Item = s_Action->m_Object.QueryInterface<ZHM5Item>();
         const ZDynamicObject* s_DynamicObject = &repositoryData->find(s_Item->m_pItemConfigDescriptor->m_RepositoryId)->second;
         const auto s_Entries = s_DynamicObject->As<TArray<SDynamicObjectKeyValuePair>>();
         std::string s_Image;
+
+        if (ImGui::Button("Teleport Item To Player"))
+            TeleportItemToHitman(s_Item);
+        ImGui::SameLine();
+
+        if (ImGui::Button("Teleport Player To Item"))
+            TeleportHitmanToItem(s_Item);
+
+        ImGui::BeginChild("item view", ImVec2(0, -ImGui::GetFrameHeightWithSpacing()));
 
         for (size_t i = 0; i < s_Entries->size(); ++i)
         {
@@ -146,18 +154,6 @@ void ImprovedDebugMod::DrawItemsBox(bool p_HasFocus)
 
                 ImGui::SameLine();
                 ImGui::Text(s_Value.c_str());
-            }
-        }
-
-        if (ImGui::Button("Teleport Item To Player"))
-        {
-            TEntityRef<ZHitman5> s_LocalHitman;
-            Functions::ZPlayerRegistry_GetLocalPlayer->Call(Globals::PlayerRegistry, &s_LocalHitman);
-
-            if (s_LocalHitman)
-            {
-                ZSpatialEntity* s_HitmanSpatial = s_LocalHitman.m_ref.QueryInterface<ZSpatialEntity>();
-                s_Item->m_rGeomentity.m_pInterfaceRef->SetWorldMatrix(s_HitmanSpatial->GetWorldMatrix());
             }
         }
 

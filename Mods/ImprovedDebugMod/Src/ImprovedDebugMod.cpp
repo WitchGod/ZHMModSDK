@@ -1042,9 +1042,24 @@ void ImprovedDebugMod::TeleportSpatialEntityToMatrix(ZSpatialEntity* p_SpatialEn
     p_SpatialEntity->SetWorldMatrix(p_TargetMatrix);
 }
 
-void ImprovedDebugMod::TeleportSpatialEntityToAnother(ZSpatialEntity* p_SpatialEntityA, ZSpatialEntity* p_SpatialEntityB)
+void ImprovedDebugMod::TeleportItemToMatrix(const ZHM5Item* p_Item, SMatrix p_TargetMatrix)
 {
-    TeleportSpatialEntityToMatrix(p_SpatialEntityA, p_SpatialEntityB->GetWorldMatrix());
+    p_Item->m_rGeomentity.m_pInterfaceRef->SetWorldMatrix(p_TargetMatrix);
+}
+
+void ImprovedDebugMod::TeleportEntityToMatrix(ZSpatialEntity* p_SpatialEntity, SMatrix p_TargetMatrix)
+{
+    TeleportSpatialEntityToMatrix(p_SpatialEntity, p_TargetMatrix);
+}
+
+void ImprovedDebugMod::TeleportEntityToMatrix(const ZHM5Item* p_Item, SMatrix p_TargetMatrix)
+{
+    TeleportItemToMatrix(p_Item, p_TargetMatrix);
+}
+
+void ImprovedDebugMod::TeleportEntityToEntity(ZSpatialEntity* p_SpatialEntityA, ZSpatialEntity* p_SpatialEntityB)
+{
+    TeleportEntityToMatrix(p_SpatialEntityA, p_SpatialEntityB->GetWorldMatrix());
 }
 
 void ImprovedDebugMod::TeleportHitmanToActor(ZActor* p_Actor)
@@ -1060,7 +1075,7 @@ void ImprovedDebugMod::TeleportHitmanToActor(ZActor* p_Actor)
         ZSpatialEntity* s_HitmanSpatialEntity = s_LocalHitman.m_ref.QueryInterface<ZSpatialEntity>();
         ZSpatialEntity* s_ActorSpatialEntity = s_Ref.QueryInterface<ZSpatialEntity>();
 
-        TeleportSpatialEntityToAnother(s_HitmanSpatialEntity, s_ActorSpatialEntity);
+        TeleportEntityToEntity(s_HitmanSpatialEntity, s_ActorSpatialEntity);
     }
 }
 
@@ -1077,7 +1092,31 @@ void ImprovedDebugMod::TeleportActorToHitman(ZActor* p_Actor)
         ZSpatialEntity* s_HitmanSpatialEntity = s_LocalHitman.m_ref.QueryInterface<ZSpatialEntity>();
         ZSpatialEntity* s_ActorSpatialEntity = s_Ref.QueryInterface<ZSpatialEntity>();
 
-        TeleportSpatialEntityToAnother(s_ActorSpatialEntity, s_HitmanSpatialEntity);
+        TeleportEntityToEntity(s_ActorSpatialEntity, s_HitmanSpatialEntity);
+    }
+}
+
+void ImprovedDebugMod::TeleportHitmanToItem(const ZHM5Item* p_Item)
+{
+    TEntityRef<ZHitman5> s_LocalHitman;
+    Functions::ZPlayerRegistry_GetLocalPlayer->Call(Globals::PlayerRegistry, &s_LocalHitman);
+
+    if (s_LocalHitman)
+    {
+        ZSpatialEntity* s_HitmanSpatial = s_LocalHitman.m_ref.QueryInterface<ZSpatialEntity>();
+        TeleportEntityToMatrix(s_HitmanSpatial, p_Item->m_rGeomentity.m_pInterfaceRef->GetWorldMatrix());
+    }
+}
+
+void ImprovedDebugMod::TeleportItemToHitman(const ZHM5Item* p_Item)
+{
+    TEntityRef<ZHitman5> s_LocalHitman;
+    Functions::ZPlayerRegistry_GetLocalPlayer->Call(Globals::PlayerRegistry, &s_LocalHitman);
+
+    if (s_LocalHitman)
+    {
+        ZSpatialEntity* s_HitmanSpatial = s_LocalHitman.m_ref.QueryInterface<ZSpatialEntity>();
+        TeleportEntityToMatrix(p_Item, s_HitmanSpatial->GetWorldMatrix());
     }
 }
 
@@ -1086,8 +1125,8 @@ void ImprovedDebugMod::SwapSpatialEntities(ZSpatialEntity* p_EntityA, ZSpatialEn
     auto s_TransA = p_EntityA->GetWorldMatrix();
     auto s_TransB = p_EntityB->GetWorldMatrix();
 
-    TeleportSpatialEntityToMatrix(p_EntityA, s_TransB);
-    TeleportSpatialEntityToMatrix(p_EntityB, s_TransA);
+    TeleportEntityToMatrix(p_EntityA, s_TransB);
+    TeleportEntityToMatrix(p_EntityB, s_TransA);
 }
 
 void ImprovedDebugMod::SwapHitmanAndActor(ZActor* p_Actor)
