@@ -599,12 +599,12 @@ void ImprovedDebugMod::LoadRepositoryProps()
 
                 if (s_Key == "ID_")
                 {
-                    s_Id = ConvertDynamicObjectValueTString(&s_Entries->operator[](i).value);
+                    s_Id = ConvertDynamicObjectValueToString(&s_Entries->operator[](i).value);
                 }
 
                 if (s_Key == "Title")
                 {
-                    std::string s_Title = ConvertDynamicObjectValueTString(&s_Entries->operator[](i).value);
+                    std::string s_Title = ConvertDynamicObjectValueToString(&s_Entries->operator[](i).value);
 
                     m_RepositoryProps.insert(std::make_pair(s_Title, ZRepositoryID(s_Id.c_str())));
 
@@ -829,7 +829,7 @@ std::string ImprovedDebugMod::FindNPCEntityNameInBrickBackReferences(
     return s_EntityName;
 }
 
-std::string ImprovedDebugMod::ConvertDynamicObjectValueTString(ZDynamicObject* p_DynamicObject)
+std::string ImprovedDebugMod::ConvertDynamicObjectValueToString(ZDynamicObject* p_DynamicObject)
 {
     std::string s_Result;
     const IType* s_Type = p_DynamicObject->m_pTypeID->typeInfo();
@@ -1146,6 +1146,34 @@ void ImprovedDebugMod::SwapHitmanAndActor(ZActor* p_Actor)
     }
 }
 
+TArray<SDynamicObjectKeyValuePair>* ImprovedDebugMod::GetItemDynamicObjectEntries(THashMap<ZRepositoryID, ZDynamicObject, TDefaultHashMapPolicy<ZRepositoryID>>* repositoryData, const ZHM5Item* p_Item)
+{
+    const ZDynamicObject* s_DynamicObject = &repositoryData->find(p_Item->m_pItemConfigDescriptor->m_RepositoryId)->second;
+    const auto s_Entries = s_DynamicObject->As<TArray<SDynamicObjectKeyValuePair>>();
+    return s_Entries;
+}
+
+std::string ImprovedDebugMod::GetItemDynamicObjectValueByKey(TArray<SDynamicObjectKeyValuePair>* p_Entries, std::string p_Key)
+{
+    std::string s_Value;
+    for (size_t i = 0; i < p_Entries->size(); ++i)
+    {
+        std::string s_Key = p_Entries->operator[](i).sKey.c_str();
+        if (s_Key == p_Key)
+        {
+            s_Value = ConvertDynamicObjectValueToString(&p_Entries->operator[](i).value);
+            return s_Value;
+        }
+    }
+    return s_Value;
+}
+
+std::string ImprovedDebugMod::GetItemDynamicObjectValueByKey(THashMap<ZRepositoryID, ZDynamicObject, TDefaultHashMapPolicy<ZRepositoryID>>* repositoryData, const ZHM5Item* p_Item, std::string p_Key)
+{
+    TArray<SDynamicObjectKeyValuePair>* s_Entries = GetItemDynamicObjectEntries(repositoryData, p_Item);
+    return GetItemDynamicObjectValueByKey(s_Entries, p_Key);
+}
+
 void ImprovedDebugMod::EnableInfiniteAmmo()
 {
     const auto s_Scene = Globals::Hitman5Module->m_pEntitySceneContext->m_pScene;
@@ -1358,6 +1386,7 @@ DEFINE_PLUGIN_DETOUR(ImprovedDebugMod, void, OnClearScene, ZEntitySceneContext* 
     m_TextureResourceData.clear();
     m_RepositoryProps.clear();
     m_Hm5CrippleBox = nullptr;
+    m_UniqueInventoryCategories.clear();
 
     m_EntityMutex.unlock();
 

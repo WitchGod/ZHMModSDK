@@ -40,6 +40,8 @@ void ImprovedDebugMod::DrawItemsBox(bool p_HasFocus)
 
         const ZHM5ActionManager* s_Hm5ActionManager = Globals::HM5ActionManager;
         std::vector<ZHM5Action*> s_Actions;
+        std::vector<ZHM5Action*> s_FilteredActions;
+        std::vector<const ZHM5Item*> s_ItemsForTeleport;
 
         if (s_Hm5ActionManager->m_Actions.size() == 0)
         {
@@ -60,14 +62,72 @@ void ImprovedDebugMod::DrawItemsBox(bool p_HasFocus)
             }
         }
 
+        static const char* s_CurrentComboItem = NULL;
+        static std::vector<std::string> s_ComboItems;
+
+        for (size_t i = 0; i < s_Actions.size(); i++)
+        {
+            ZHM5Action* s_Action = s_Actions[i];
+            const ZHM5Item* s_Item = s_Action->m_Object.QueryInterface<ZHM5Item>();
+
+            m_UniqueInventoryCategories.insert(GetItemDynamicObjectValueByKey(repositoryData, s_Item, "InventoryCategoryName"));
+        }
+
+        s_ComboItems.assign(m_UniqueInventoryCategories.begin(), m_UniqueInventoryCategories.end());
+
+        ImGui::PushItemWidth(200);
+        if (ImGui::BeginCombo("##categorycombo", s_CurrentComboItem))
+        {
+            for (int n = 0; n < s_ComboItems.size(); ++n)
+            {
+                const bool s_IsSelected = (s_CurrentComboItem == s_ComboItems[n].c_str());
+                if (ImGui::Selectable(s_ComboItems[n].c_str(), s_IsSelected))
+                {
+                    s_CurrentComboItem = s_ComboItems[n].c_str();
+                    s_FilteredActions.clear();
+                    s_ItemsForTeleport.clear();
+                }
+                if (s_IsSelected)
+                    ImGui::SetItemDefaultFocus();
+            }
+            ImGui::EndCombo();
+        }
+        ImGui::PopItemWidth();
+        ImGui::SameLine();
+
+        for (size_t i = 0; i < s_Actions.size(); i++)
+        {
+            ZHM5Action* s_Action = s_Actions[i];
+            const ZHM5Item* s_Item = s_Action->m_Object.QueryInterface<ZHM5Item>();
+            std::string s_InventoryCategory = GetItemDynamicObjectValueByKey(repositoryData, s_Item, "InventoryCategoryName");
+            std::string s_ItemType = GetItemDynamicObjectValueByKey(repositoryData, s_Item, "ItemType");
+
+            s_FilteredActions.push_back(s_Action);
+
+            if (s_CurrentComboItem != NULL)
+                if (strcmp(s_InventoryCategory.c_str(), s_CurrentComboItem) == 0 || strcmp(s_InventoryCategory.c_str(), s_CurrentComboItem) == 0)
+                {
+                    // Check if "poison" items are of type eCC_Bottle. Don't teleport if so.
+                    if (strcmp(s_InventoryCategory.c_str(), "poison") == 0 && strcmp(s_ItemType.c_str(), "eCC_Bottle") == 0)
+                        continue;
+                    s_ItemsForTeleport.push_back(s_Item);
+                }
+        }
+
+        if (ImGui::Button("Teleport Item Group to Player"))
+        {
+            for (size_t i = 0; i < s_ItemsForTeleport.size(); i++)
+                TeleportItemToHitman(s_ItemsForTeleport[i]);
+        }
+
         static size_t s_Selected = 0;
-        size_t count = s_Actions.size();
+        size_t count = s_FilteredActions.size();
 
         ImGui::BeginChild("left pane", ImVec2(300, 0), true, ImGuiWindowFlags_HorizontalScrollbar);
 
         for (size_t i = 0; i < count; i++)
         {
-            ZHM5Action* s_Action = s_Actions[i];
+            ZHM5Action* s_Action = s_FilteredActions[i];
             const ZHM5Item* s_Item = s_Action->m_Object.QueryInterface<ZHM5Item>();
             std::string s_Title = std::format("{} {}", s_Item->m_pItemConfigDescriptor->m_sTitle.c_str(), i + 1);
 
@@ -83,10 +143,11 @@ void ImprovedDebugMod::DrawItemsBox(bool p_HasFocus)
 
         ImGui::BeginGroup();
 
-        ZHM5Action* s_Action = s_Actions[s_Selected];
+        ZHM5Action* s_Action = s_FilteredActions[s_Selected];
         const ZHM5Item* s_Item = s_Action->m_Object.QueryInterface<ZHM5Item>();
-        const ZDynamicObject* s_DynamicObject = &repositoryData->find(s_Item->m_pItemConfigDescriptor->m_RepositoryId)->second;
-        const auto s_Entries = s_DynamicObject->As<TArray<SDynamicObjectKeyValuePair>>();
+        //const ZDynamicObject* s_DynamicObject = &repositoryData->find(s_Item->m_pItemConfigDescriptor->m_RepositoryId)->second;
+        //const auto s_Entries = s_DynamicObject->As<TArray<SDynamicObjectKeyValuePair>>();
+        const auto s_Entries = GetItemDynamicObjectEntries(repositoryData, s_Item);
         std::string s_Image;
 
         if (ImGui::Button("Teleport Item To Player"))
@@ -98,19 +159,10 @@ void ImprovedDebugMod::DrawItemsBox(bool p_HasFocus)
 
         ImGui::BeginChild("item view", ImVec2(0, -ImGui::GetFrameHeightWithSpacing()));
 
-        for (size_t i = 0; i < s_Entries->size(); ++i)
-        {
-            std::string s_Key = s_Entries->operator[](i).sKey.c_str();
+        s_Image = GetItemDynamicObjectValueByKey(s_Entries, "Image");
 
-            if (s_Key == "Image")
-            {
-                s_Image = ConvertDynamicObjectValueTString(&s_Entries->operator[](i).value);
-
-                break;
-            }
-        }
-
-        /*if (m_TextureResourceData.size() == 0)
+        /*
+        if (m_TextureResourceData.size() == 0)
         {
             const unsigned long long s_DdsTextureHash = GetDDSTextureHash(s_Image);
 
@@ -119,7 +171,8 @@ void ImprovedDebugMod::DrawItemsBox(bool p_HasFocus)
             SDK()->LoadTextureFromMemory(m_TextureResourceData, &m_TextureSrvGpuHandle, m_Width, m_Height);
         }
 
-        ImGui::Image(reinterpret_cast<ImTextureID>(m_TextureSrvGpuHandle.ptr), ImVec2(static_cast<float>(m_Width / 2), static_cast<float>(m_Height / 2)));*/
+        ImGui::Image(reinterpret_cast<ImTextureID>(m_TextureSrvGpuHandle.ptr), ImVec2(static_cast<float>(m_Width / 2), static_cast<float>(m_Height / 2)));
+        */
 
         for (unsigned int i = 0; i < s_Entries->size(); ++i)
         {
@@ -136,7 +189,7 @@ void ImprovedDebugMod::DrawItemsBox(bool p_HasFocus)
 
                 for (unsigned int j = 0; j < s_Array->size(); ++j)
                 {
-                    std::string s_Value = ConvertDynamicObjectValueTString(&s_Array->operator[](j));
+                    std::string s_Value = ConvertDynamicObjectValueToString(&s_Array->operator[](j));
 
                     if (!s_Value.empty())
                     {
@@ -150,7 +203,7 @@ void ImprovedDebugMod::DrawItemsBox(bool p_HasFocus)
             {
                 ImGui::Text(s_Key.c_str());
 
-                std::string s_Value = ConvertDynamicObjectValueTString(&s_Entries->operator[](i).value);
+                std::string s_Value = ConvertDynamicObjectValueToString(&s_Entries->operator[](i).value);
 
                 ImGui::SameLine();
                 ImGui::Text(s_Value.c_str());

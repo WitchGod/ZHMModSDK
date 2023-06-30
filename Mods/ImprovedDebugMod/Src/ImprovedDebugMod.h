@@ -58,7 +58,7 @@ private:
     std::string GetEntityName(unsigned long long p_TempBrickHash, unsigned long long p_EntityId, unsigned long long& p_ResourceHash);
     std::string FindNPCEntityNameInBrickBackReferences(unsigned long long p_TempBrickHash, unsigned long long p_EntityId, unsigned long long& p_ResourceHash);
 
-    std::string ConvertDynamicObjectValueTString(ZDynamicObject* p_DynamicObject);
+    std::string ConvertDynamicObjectValueToString(ZDynamicObject* p_DynamicObject);
     void LoadResourceData(unsigned long long p_Hash, std::vector<char>& p_ResourceData);
     void LoadResourceData(unsigned long long p_Hash, std::vector<char>& p_ResourceData, const std::string& p_RpkgFilePath);
     std::string GetPatchRPKGFilePath();
@@ -75,6 +75,10 @@ private:
     void TeleportItemToHitman(const ZHM5Item* p_Item);
     void SwapSpatialEntities(ZSpatialEntity* p_EntityA, ZSpatialEntity* p_EntityB);
     void SwapHitmanAndActor(ZActor* p_Actor);
+
+    TArray<SDynamicObjectKeyValuePair>* GetItemDynamicObjectEntries(THashMap<ZRepositoryID, ZDynamicObject, TDefaultHashMapPolicy<ZRepositoryID>>* repositoryData, const ZHM5Item* p_Item);
+    std::string GetItemDynamicObjectValueByKey(TArray<SDynamicObjectKeyValuePair>* p_Entries, std::string p_Key);
+    std::string GetItemDynamicObjectValueByKey(THashMap<ZRepositoryID, ZDynamicObject, TDefaultHashMapPolicy<ZRepositoryID>>* repositoryData, const ZHM5Item* p_Item, std::string p_Key);
 
     void EnableInfiniteAmmo();
 
@@ -132,6 +136,7 @@ private:
     inline static std::mutex m_Mutex;
 
     ZHM5CrippleBox* m_Hm5CrippleBox = nullptr;
+    std::set<std::string> m_UniqueInventoryCategories;
 };
 
 DECLARE_ZHM_PLUGIN(ImprovedDebugMod)
