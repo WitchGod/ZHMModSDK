@@ -138,6 +138,11 @@ private:
     ZHM5CrippleBox* m_Hm5CrippleBox = nullptr;
     std::set<std::string> m_UniqueInventoryCategories;
     float m_RenderDistance = 30.0f;
+    SMatrix m_MarkPosition;
+    SMatrix m_VoidPosition;
+    std::vector<ZActor*> m_MarkTargets;
+    ZEntityRef m_OriginalCam;
+    bool m_CurrentlyPeeking;
 };
 
 DECLARE_ZHM_PLUGIN(ImprovedDebugMod)
