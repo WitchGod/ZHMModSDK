@@ -252,6 +252,7 @@ void ImprovedDebugMod::DrawOptions(bool p_HasFocus)
 
     if (s_Showing)
     {
+        ImGui::InputFloat("Render Distance", &m_RenderDistance, 0.1f, 1.0f, "%.1f");
         ImGui::Checkbox("Render NPC position boxes", &m_RenderNpcBoxes);
         ImGui::Checkbox("Render NPC names", &m_RenderNpcNames);
         ImGui::Checkbox("Render NPC repository IDs", &m_RenderNpcRepoIds);
@@ -1260,6 +1261,10 @@ void ImprovedDebugMod::OnDraw3D(IRenderer* p_Renderer)
 {
     if (m_RenderNpcBoxes || m_RenderNpcNames || m_RenderNpcRepoIds)
     {
+        TEntityRef<ZHitman5> s_LocalHitman;
+        Functions::ZPlayerRegistry_GetLocalPlayer->Call(Globals::PlayerRegistry, &s_LocalHitman);
+        ZSpatialEntity* s_HitmanSpatialEntity = s_LocalHitman.m_ref.QueryInterface<ZSpatialEntity>();
+
         for (int i = 0; i < *Globals::NextActorId; ++i)
         {
             auto* s_Actor = Globals::ActorManager->m_aActiveActors[i].m_pInterfaceRef;
@@ -1273,6 +1278,13 @@ void ImprovedDebugMod::OnDraw3D(IRenderer* p_Renderer)
             Functions::ZSpatialEntity_WorldTransform->Call(s_SpatialEntity, &s_Transform);
             SVector4 s_TextColor = SVector4(0.0f, 0.737f, 0.89f, 1.0f);
 
+            // Only render if distance is less than 30m from player.
+            const SVector3 s_Temp = s_HitmanSpatialEntity->m_mTransform.Trans - s_SpatialEntity->m_mTransform.Trans;
+            const float s_Distance = sqrt(s_Temp.x * s_Temp.x + s_Temp.y * s_Temp.y + s_Temp.z * s_Temp.z);
+
+            if (s_Distance > m_RenderDistance)
+                continue;
+
             if (m_RenderNpcBoxes)
             {
                 float4 s_Min, s_Max;
@@ -1285,8 +1297,36 @@ void ImprovedDebugMod::OnDraw3D(IRenderer* p_Renderer)
             if (m_RenderNpcNames)
             {
                 SVector2 s_ScreenPos;
+                ZString s_TextToRender = s_Actor->m_sActorName;
+
                 if (p_Renderer->WorldToScreen(SVector3(s_Transform.mat[3].x, s_Transform.mat[3].y, s_Transform.mat[3].z + 2.05f), s_ScreenPos))
-                    p_Renderer->DrawText2D(s_Actor->m_sActorName, s_ScreenPos, s_TextColor, 0.f, 0.3f);
+                    p_Renderer->DrawText2D(s_TextToRender, s_ScreenPos, s_TextColor, 0.f, 0.3f);
+
+                if (p_Renderer->WorldToScreen(SVector3(s_Transform.mat[3].x, s_Transform.mat[3].y, s_Transform.mat[3].z + 2.0f), s_ScreenPos))
+                    p_Renderer->DrawText2D("Z+2", s_ScreenPos, s_TextColor, 0.f, 0.3f);
+
+                if (p_Renderer->WorldToScreen(SVector3(s_Transform.mat[3].x, s_Transform.mat[3].y, s_Transform.mat[3].z + 1.0f), s_ScreenPos))
+                    p_Renderer->DrawText2D("Z+1", s_ScreenPos, s_TextColor, 0.f, 0.3f);
+
+                if (p_Renderer->WorldToScreen(SVector3(s_Transform.mat[3].x, s_Transform.mat[3].y, s_Transform.mat[3].z), s_ScreenPos))
+                    p_Renderer->DrawText2D("Z+0", s_ScreenPos, s_TextColor, 0.f, 0.3f);
+
+                if (p_Renderer->WorldToScreen(SVector3(s_Transform.mat[3].x, s_Transform.mat[3].y - 1.0f, s_Transform.mat[3].z), s_ScreenPos))
+                    p_Renderer->DrawText2D("Y-1", s_ScreenPos, s_TextColor, 0.f, 0.3f);
+
+                if (p_Renderer->WorldToScreen(SVector3(s_Transform.mat[3].x, s_Transform.mat[3].y + 1.0f, s_Transform.mat[3].z), s_ScreenPos))
+                    p_Renderer->DrawText2D("Y+1", s_ScreenPos, s_TextColor, 0.f, 0.3f);
+
+                if (p_Renderer->WorldToScreen(SVector3(s_Transform.mat[3].x + 1.0f, s_Transform.mat[3].y + 1.0f, s_Transform.mat[3].z), s_ScreenPos))
+                    p_Renderer->DrawText2D("X+1", s_ScreenPos, s_TextColor, 0.f, 0.3f);
+
+                if (p_Renderer->WorldToScreen(SVector3(s_Transform.mat[3].x - 1.0f, s_Transform.mat[3].y + 1.0f, s_Transform.mat[3].z), s_ScreenPos))
+                    p_Renderer->DrawText2D("X-1", s_ScreenPos, s_TextColor, 0.f, 0.3f);
+
+                if (p_Renderer->WorldToScreen(SVector3(s_Transform.mat[3].x - 1.0f, s_Transform.mat[3].y + 1.0f, s_Transform.mat[3].z), s_ScreenPos))
+                    p_Renderer->DrawText2D("X-1", s_ScreenPos, s_TextColor, 0.f, 0.3f);
+
+                p_Renderer->DrawLine3D
             }
 
             if (m_RenderNpcRepoIds)
@@ -1294,6 +1334,7 @@ void ImprovedDebugMod::OnDraw3D(IRenderer* p_Renderer)
                 auto* s_RepoEntity = s_Ref.QueryInterface<ZRepositoryItemEntity>();
                 SVector2 s_ScreenPos;
                 bool s_Success;
+                ZString s_TextToRender = s_RepoEntity->m_sId.ToString();
 
                 if (m_RenderNpcNames)
                     s_Success = p_Renderer->WorldToScreen(SVector3(s_Transform.mat[3].x, s_Transform.mat[3].y, s_Transform.mat[3].z + 2.1f), s_ScreenPos);
@@ -1301,7 +1342,7 @@ void ImprovedDebugMod::OnDraw3D(IRenderer* p_Renderer)
                     s_Success = p_Renderer->WorldToScreen(SVector3(s_Transform.mat[3].x, s_Transform.mat[3].y, s_Transform.mat[3].z + 2.05f), s_ScreenPos);
 
                 if (s_Success)
-                    p_Renderer->DrawText2D(s_RepoEntity->m_sId.ToString(), s_ScreenPos, s_TextColor, 0.f, 0.3f);
+                    p_Renderer->DrawText2D(s_TextToRender, s_ScreenPos, s_TextColor, 0.f, 0.3f);
             }
         }
     }

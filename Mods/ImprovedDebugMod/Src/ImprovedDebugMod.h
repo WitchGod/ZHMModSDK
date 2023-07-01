@@ -137,6 +137,7 @@ private:
 
     ZHM5CrippleBox* m_Hm5CrippleBox = nullptr;
     std::set<std::string> m_UniqueInventoryCategories;
+    float m_RenderDistance = 30.0f;
 };
 
 DECLARE_ZHM_PLUGIN(ImprovedDebugMod)
