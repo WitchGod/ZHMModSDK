@@ -1302,31 +1302,29 @@ void ImprovedDebugMod::OnDraw3D(IRenderer* p_Renderer)
                 if (p_Renderer->WorldToScreen(SVector3(s_Transform.mat[3].x, s_Transform.mat[3].y, s_Transform.mat[3].z + 2.05f), s_ScreenPos))
                     p_Renderer->DrawText2D(s_TextToRender, s_ScreenPos, s_TextColor, 0.f, 0.3f);
 
-                if (p_Renderer->WorldToScreen(SVector3(s_Transform.mat[3].x, s_Transform.mat[3].y, s_Transform.mat[3].z + 2.0f), s_ScreenPos))
-                    p_Renderer->DrawText2D("Z+2", s_ScreenPos, s_TextColor, 0.f, 0.3f);
+                //if (p_Renderer->WorldToScreen(SVector3(s_Transform.mat[3].x, s_Transform.mat[3].y, s_Transform.mat[3].z + 2.0f), s_ScreenPos))
+                //    p_Renderer->DrawText2D("Z+2", s_ScreenPos, s_TextColor, 0.f, 0.3f);
 
-                if (p_Renderer->WorldToScreen(SVector3(s_Transform.mat[3].x, s_Transform.mat[3].y, s_Transform.mat[3].z + 1.0f), s_ScreenPos))
-                    p_Renderer->DrawText2D("Z+1", s_ScreenPos, s_TextColor, 0.f, 0.3f);
+                //if (p_Renderer->WorldToScreen(SVector3(s_Transform.mat[3].x, s_Transform.mat[3].y, s_Transform.mat[3].z + 1.0f), s_ScreenPos))
+                //    p_Renderer->DrawText2D("Z+1", s_ScreenPos, s_TextColor, 0.f, 0.3f);
 
-                if (p_Renderer->WorldToScreen(SVector3(s_Transform.mat[3].x, s_Transform.mat[3].y, s_Transform.mat[3].z), s_ScreenPos))
-                    p_Renderer->DrawText2D("Z+0", s_ScreenPos, s_TextColor, 0.f, 0.3f);
+                //if (p_Renderer->WorldToScreen(SVector3(s_Transform.mat[3].x, s_Transform.mat[3].y, s_Transform.mat[3].z), s_ScreenPos))
+                //    p_Renderer->DrawText2D("Z+0", s_ScreenPos, s_TextColor, 0.f, 0.3f);
 
-                if (p_Renderer->WorldToScreen(SVector3(s_Transform.mat[3].x, s_Transform.mat[3].y - 1.0f, s_Transform.mat[3].z), s_ScreenPos))
-                    p_Renderer->DrawText2D("Y-1", s_ScreenPos, s_TextColor, 0.f, 0.3f);
+                //if (p_Renderer->WorldToScreen(SVector3(s_Transform.mat[3].x, s_Transform.mat[3].y - 1.0f, s_Transform.mat[3].z), s_ScreenPos))
+                //    p_Renderer->DrawText2D("Y-1", s_ScreenPos, s_TextColor, 0.f, 0.3f);
 
-                if (p_Renderer->WorldToScreen(SVector3(s_Transform.mat[3].x, s_Transform.mat[3].y + 1.0f, s_Transform.mat[3].z), s_ScreenPos))
-                    p_Renderer->DrawText2D("Y+1", s_ScreenPos, s_TextColor, 0.f, 0.3f);
+                //if (p_Renderer->WorldToScreen(SVector3(s_Transform.mat[3].x, s_Transform.mat[3].y + 1.0f, s_Transform.mat[3].z), s_ScreenPos))
+                //    p_Renderer->DrawText2D("Y+1", s_ScreenPos, s_TextColor, 0.f, 0.3f);
 
-                if (p_Renderer->WorldToScreen(SVector3(s_Transform.mat[3].x + 1.0f, s_Transform.mat[3].y + 1.0f, s_Transform.mat[3].z), s_ScreenPos))
-                    p_Renderer->DrawText2D("X+1", s_ScreenPos, s_TextColor, 0.f, 0.3f);
+                //if (p_Renderer->WorldToScreen(SVector3(s_Transform.mat[3].x + 1.0f, s_Transform.mat[3].y + 1.0f, s_Transform.mat[3].z), s_ScreenPos))
+                //    p_Renderer->DrawText2D("X+1", s_ScreenPos, s_TextColor, 0.f, 0.3f);
 
-                if (p_Renderer->WorldToScreen(SVector3(s_Transform.mat[3].x - 1.0f, s_Transform.mat[3].y + 1.0f, s_Transform.mat[3].z), s_ScreenPos))
-                    p_Renderer->DrawText2D("X-1", s_ScreenPos, s_TextColor, 0.f, 0.3f);
+                //if (p_Renderer->WorldToScreen(SVector3(s_Transform.mat[3].x - 1.0f, s_Transform.mat[3].y + 1.0f, s_Transform.mat[3].z), s_ScreenPos))
+                //    p_Renderer->DrawText2D("X-1", s_ScreenPos, s_TextColor, 0.f, 0.3f);
 
-                if (p_Renderer->WorldToScreen(SVector3(s_Transform.mat[3].x - 1.0f, s_Transform.mat[3].y + 1.0f, s_Transform.mat[3].z), s_ScreenPos))
-                    p_Renderer->DrawText2D("X-1", s_ScreenPos, s_TextColor, 0.f, 0.3f);
-
-                p_Renderer->DrawLine3D
+                //if (p_Renderer->WorldToScreen(SVector3(s_Transform.mat[3].x - 1.0f, s_Transform.mat[3].y + 1.0f, s_Transform.mat[3].z), s_ScreenPos))
+                //    p_Renderer->DrawText2D("X-1", s_ScreenPos, s_TextColor, 0.f, 0.3f);
             }
 
             if (m_RenderNpcRepoIds)
