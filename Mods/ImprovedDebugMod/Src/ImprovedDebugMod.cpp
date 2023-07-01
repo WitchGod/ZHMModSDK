@@ -1271,6 +1271,7 @@ void ImprovedDebugMod::OnDraw3D(IRenderer* p_Renderer)
 
             SMatrix s_Transform;
             Functions::ZSpatialEntity_WorldTransform->Call(s_SpatialEntity, &s_Transform);
+            SVector4 s_TextColor = SVector4(0.0f, 0.737f, 0.89f, 1.0f);
 
             if (m_RenderNpcBoxes)
             {
@@ -1278,14 +1279,14 @@ void ImprovedDebugMod::OnDraw3D(IRenderer* p_Renderer)
 
                 s_SpatialEntity->CalculateBounds(s_Min, s_Max, 1, 0);
 
-                p_Renderer->DrawOBB3D(SVector3(s_Min.x, s_Min.y, s_Min.z), SVector3(s_Max.x, s_Max.y, s_Max.z), s_Transform, SVector4(1.f, 0.f, 0.f, 1.f));
+                p_Renderer->DrawOBB3D(SVector3(s_Min.x, s_Min.y, s_Min.z), SVector3(s_Max.x, s_Max.y, s_Max.z), s_Transform, s_TextColor);
             }
 
             if (m_RenderNpcNames)
             {
                 SVector2 s_ScreenPos;
                 if (p_Renderer->WorldToScreen(SVector3(s_Transform.mat[3].x, s_Transform.mat[3].y, s_Transform.mat[3].z + 2.05f), s_ScreenPos))
-                    p_Renderer->DrawText2D(s_Actor->m_sActorName, s_ScreenPos, SVector4(1.f, 0.f, 0.f, 1.f), 0.f, 0.5f);
+                    p_Renderer->DrawText2D(s_Actor->m_sActorName, s_ScreenPos, s_TextColor, 0.f, 0.3f);
             }
 
             if (m_RenderNpcRepoIds)
@@ -1300,7 +1301,7 @@ void ImprovedDebugMod::OnDraw3D(IRenderer* p_Renderer)
                     s_Success = p_Renderer->WorldToScreen(SVector3(s_Transform.mat[3].x, s_Transform.mat[3].y, s_Transform.mat[3].z + 2.05f), s_ScreenPos);
 
                 if (s_Success)
-                    p_Renderer->DrawText2D(s_RepoEntity->m_sId.ToString(), s_ScreenPos, SVector4(1.f, 0.f, 0.f, 1.f), 0.f, 0.5f);
+                    p_Renderer->DrawText2D(s_RepoEntity->m_sId.ToString(), s_ScreenPos, s_TextColor, 0.f, 0.3f);
             }
         }
     }

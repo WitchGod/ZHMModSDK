@@ -452,6 +452,49 @@ void DirectXTKRenderer::DrawText2D(const ZString& p_Text, const SVector2& p_Pos,
     else if (p_Alignment == TextAlignment::Right)
         s_Origin.x = s_StringSize.x;
 
+    // Drop-shadows.
+    m_Font->DrawString(
+        m_SpriteBatch.get(),
+        s_Text.c_str(),
+        DirectX::SimpleMath::Vector2(p_Pos.x, p_Pos.y) + DirectX::SimpleMath::Vector2(1.0f, 1.0f),
+        DirectX::SimpleMath::Vector4(0.0f, 0.0f, 0.0f, 1.0f),
+        p_Rotation,
+        s_Origin,
+        p_Scale
+    );
+
+    m_Font->DrawString(
+        m_SpriteBatch.get(),
+        s_Text.c_str(),
+        DirectX::SimpleMath::Vector2(p_Pos.x, p_Pos.y) + DirectX::SimpleMath::Vector2(-1.0f, 1.0f),
+        DirectX::SimpleMath::Vector4(0.0f, 0.0f, 0.0f, 1.0f),
+        p_Rotation,
+        s_Origin,
+        p_Scale
+    );
+
+    // Additional to complete outline.
+    m_Font->DrawString(
+        m_SpriteBatch.get(),
+        s_Text.c_str(),
+        DirectX::SimpleMath::Vector2(p_Pos.x, p_Pos.y) + DirectX::SimpleMath::Vector2(-1.0f, -1.0f),
+        DirectX::SimpleMath::Vector4(0.0f, 0.0f, 0.0f, 1.0f),
+        p_Rotation,
+        s_Origin,
+        p_Scale
+    );
+
+    m_Font->DrawString(
+        m_SpriteBatch.get(),
+        s_Text.c_str(),
+        DirectX::SimpleMath::Vector2(p_Pos.x, p_Pos.y) + DirectX::SimpleMath::Vector2(1.0f, -1.0f),
+        DirectX::SimpleMath::Vector4(0.0f, 0.0f, 0.0f, 1.0f),
+        p_Rotation,
+        s_Origin,
+        p_Scale
+    );
+
+    // Actual text.
     m_Font->DrawString(
         m_SpriteBatch.get(),
         s_Text.c_str(),
